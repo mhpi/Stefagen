@@ -1,0 +1,144 @@
+defaults:
+  - _self_
+  - hydra: settings
+  - observations: camels_531
+
+# General Settings
+mode: train_test
+multimodel_type: none
+random_seed: 111111
+
+# Device Settings
+device: cuda
+gpu_id: 0
+use_multi_gpu: true
+devices: "0,1"
+
+# I/O Settings
+save_path: ../results
+data_loader: finetune_loader
+data_sampler: finetune_sampler
+data_path: /storage/home/nrk5343/work/MFFormer.Nicks/MFFormer.FineTune.V0.01/CAMELS_Frederik.nc
+trainer: finetuning_training
+
+
+
+# Training Configuration
+train:
+  start_time: 1999/10/01
+  end_time: 2008/09/30
+  target: [flow_sim]
+  optimizer: Adadelta
+  batch_size: 100
+  epochs: 1
+  start_epoch: 0
+  save_epoch: 10
+
+# Testing Configuration
+test:
+  start_time: 1989/10/01
+  end_time: 1999/09/30
+  batch_size: 25
+  test_epoch: 50
+  do_eval: true
+
+test_mode:
+  type: temporal  # Options: temporal, spatial
+  gage_split_file: /storage/home/nrk5343/work/Data/gages_list_with_pub.csv  
+  extent: PUB    # Options: PUR, PUB
+  holdout_indexs: [0,1]  # List based on region config (0-6 PUR, 0-10 PUB)
+  
+  # Region Configuration for PUR (only needed when extent is PUR)
+  huc_regions:
+    - [1, 2]
+    - [3, 6]
+    - [4, 5, 7]
+    - [9, 10]
+    - [8, 11, 12, 13]
+    - [14, 15, 16, 18]
+    - [17]
+  
+  # Region config for PUB (only needed when extent is PUB)
+  PUB_ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # List of PUB IDs for potential feature designs
+
+# Loss Function
+loss_function:
+    model: RmseLoss
+# Model Configuration
+dpl_model:
+  rho: 365
+  # Model Settings
+  pretrained_model: /storage/home/nrk5343/work/MFFormer.Nicks/MFFormer.FineTune.V0.01/30.MFFormer/CAMELS_Frederik.nc/output/30.MFFormer/pretrain_MFFormer_dec_LSTM_GLOBAL_3434_3262_data_3434_cv_kfold0/checkpoints/checkpoint_epoch_30.pt
+  
+  # Physical Model (HBV)
+  phy_model:
+      model: [HBV_1_1p]
+      nmul: 16
+      warm_up: 365
+      warm_up_states: True
+      dy_drop: 0.0
+      dynamic_params:
+          HBV: [parBETA, parBETAET]
+      routing: True
+      use_log_norm: [prcp]
+      nearzero: 1e-5
+
+      forcings: [
+          prcp,
+          tmean,
+          pet
+      ]
+      attributes: []
+
+  # Neural Network Model (MFFormer)
+  nn_model:
+    model: FinetuneHydro
+    dropout: 0.1
+    hidden_size: 256
+    learning_rate: 1.0
+    # Transformer specific
+    num_enc_layers: 4
+    num_dec_layers: 2
+    d_ffd: 512
+    # Fine-tuning specific
+    adapter_type: gated
+    mask_ratio_time_series: 0.5
+    mask_ratio_static: 0.5
+    # Input data
+    forcings: [  # Time series variables
+      prcp_daymet,
+      srad_daymet,
+      tmax_daymet,
+      tmin_daymet,
+      vp_daymet
+    ]
+    attributes: [  # Static basin attributes
+      elev_mean,
+      slope_mean,
+      area_gages2,
+      frac_forest,
+      lai_max,
+      lai_diff,
+      gvf_max,
+      gvf_diff,
+      soil_depth_pelletier,
+      soil_depth_statsgo,
+      soil_porosity,
+      soil_conductivity,
+      max_water_content,
+      sand_frac,
+      silt_frac,
+      clay_frac,
+      carbonate_rocks_frac,
+      geol_permeability,
+      p_mean,
+      pet_mean,
+      aridity,
+      frac_snow,
+      high_prec_freq,
+      high_prec_dur,
+      low_prec_freq,
+      low_prec_dur
+    ]
+
+

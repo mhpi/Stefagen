@@ -1,0 +1,137 @@
+defaults:
+  - _self_
+  - hydra: settings
+  - observations: global_6738
+
+# General Settings
+mode: train_test
+multimodel_type: none
+random_seed: 111111
+
+# Device Settings
+device: cuda
+gpu_id: 0
+use_multi_gpu: true
+devices: "0,1"
+
+# I/O Settings
+save_path: ../results
+data_loader: finetune_loader
+data_sampler: finetune_sampler
+data_path: /storage/home/nrk5343/scratch/Data/GLOBAL_6738.nc
+trainer: finetuning_training
+
+
+
+# Training Configuration
+train:
+  start_time: 1999/10/01
+  end_time: 2008/09/30
+  target: [streamflow]
+  optimizer: Adadelta
+  batch_size: 64
+  epochs: 50
+  start_epoch: 0
+  save_epoch: 5
+
+# Testing Configuration
+test:
+  start_time: 1989/10/01
+  end_time: 1999/09/30
+  batch_size: 64
+  test_epoch: 50
+  do_eval: true
+
+test_mode:
+  type:  temporal # Options: temporal, spatial
+  gage_split_file: /storage/home/nrk5343/scratch/Data/Global_6738PUBID.csv
+  extent: PUR   # Options: PUR, PUB
+  holdout_indexs: [0,1,2,3,4,5,6]  # List based on region config (0-6 PUR, 0-10 PUB)
+  
+  # Region Configuration for PUR (only needed when extent is PUR)
+  huc_regions:
+    - [1, 2]
+    - [3, 6]
+    - [4, 5, 7]
+    - [9, 10]
+    - [8, 11, 12, 13]
+    - [14, 15, 16, 18]
+    - [17]
+  
+  # Region config for PUB (only needed when extent is PUB)
+  PUB_ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # List of PUB IDs for potential feature designs
+
+# Loss Function
+loss_function:
+    model: RmseLoss
+# Model Configuration
+dpl_model:
+  rho: 365
+  # Model Settings
+  pretrained_model: /storage/home/nrk5343/scratch/30.Mfformer/pretrain_MFFormer_dec_LSTM_GLOBAL_6738_Global6738/checkpoints/checkpoint_epoch_30.pt
+  
+  # Physical Model (HBV)
+  phy_model:
+      model: [HBV_1_1p]
+      nmul: 16
+      warm_up: 365
+      warm_up_states: True
+      dy_drop: 0.0
+      dynamic_params:
+          HBV1_1p: [parBETA,parBETAET]
+      routing: True
+      use_log_norm: [prcp]
+      nearzero: 1e-5
+      forcings: [
+          prcp,
+          tmean,
+          pet
+      ]
+      attributes: []
+
+  # Neural Network Model (MFFormer)
+  nn_model:
+    model: FineTunerResidual
+    dropout: 0.2
+    hidden_size: 512
+    learning_rate: 1.1
+    # Transformer specific
+    num_enc_layers: 4
+    num_dec_layers: 2
+    d_ffd: 512
+    # Input data
+    forcings: [  # Time series variables
+        prcp,
+        tmean,
+        pet
+    ]
+    attributes: [  # Static basin attributes
+      'lat', 
+      'lon', 
+      'aridity', 
+      'meanP', 
+      'ETPOT_Hargr', 
+      'NDVI', 
+      'FW', 
+      'meanslope', 
+      'SoilGrids1km_sand', 
+      'SoilGrids1km_clay', 
+      'SoilGrids1km_silt', 
+      'glaciers', 
+      'HWSD_clay', 
+      'HWSD_gravel', 
+      'HWSD_sand', 
+      'HWSD_silt', 
+      'meanelevation', 
+      'meanTa', 
+      'permafrost',
+      'permeability', 
+      'seasonality_P', 
+      'seasonality_PET', 
+      'snow_fraction', 
+      'snowfall_fraction', 
+      'catchsize', 
+      'Porosity'
+    ]
+
+

@@ -1,0 +1,14 @@
+numpy==1.26.4
+pandas
+geopandas
+pydantic
+xarray
+scipy
+netcdf4
+ipykernel
+hydra-core
+tqdm
+polars
+zarr
+sympy==1.13.1
+pytest

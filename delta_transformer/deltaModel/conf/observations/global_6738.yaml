@@ -1,0 +1,44 @@
+name: Global_6738
+train_path: /storage/home/nrk5343/scratch/Data/training_file_prism #not important in this case
+test_path: /storage/home/nrk5343/scratch/Data/training_file_prism #not important in this case
+
+gage_info: /storage/home/nrk5343/scratch/Data/gageid.npy #not important in this case
+area_name: area_gages2 #not important in this case
+station_ids: /storage/home/nrk5343/work/30.MFFormer/MFFormer/datasets/GLOBAL_streamflow/6738_global.txt
+
+start_time: 1980/01/01
+end_time: 2018/12/31
+
+forcings_all: [
+  prcp,
+  tmean,
+  pet
+]
+attributes_all: [
+ 'lat', 
+ 'lon', 
+ 'aridity', 
+ 'meanP', 
+ 'ETPOT_Hargr', 
+ 'NDVI', 
+ 'FW', 
+ 'meanslope', 
+ 'SoilGrids1km_sand', 
+ 'SoilGrids1km_clay', 
+ 'SoilGrids1km_silt', 
+ 'glaciers', 
+ 'HWSD_clay', 
+ 'HWSD_gravel', 
+ 'HWSD_sand', 
+ 'HWSD_silt', 
+ 'meanelevation', 
+ 'meanTa', 
+ 'permafrost',
+ 'permeability', 
+ 'seasonality_P', 
+ 'seasonality_PET', 
+ 'snow_fraction', 
+ 'snowfall_fraction', 
+ 'catchsize', 
+ 'Porosity'
+]
